@@ -2,6 +2,10 @@ import { Request, Response } from "express";
 import express from "express";
 import multer from "multer";
 import path from "path";
+import dotenv from "dotenv";
+import { SftpService } from "./sftp.service";
+
+dotenv.config();
 
 const app = express();
 
@@ -15,8 +19,17 @@ interface MulterRequest extends Request {
   file?: Express.Multer.File;
 }
 
-app.get("/", (req, res) => {
-  res.send("hello");
+app.get("/", async (req, res) => {
+  const sftp = new SftpService();
+
+  try {
+    await sftp.connect();
+    res.send({ message: "Connection Stablished!" });
+  } catch (e) {
+    console.log(e);
+  } finally {
+    await sftp.disconnect();
+  }
 });
 
 app.post(
@@ -33,10 +46,29 @@ app.post(
       req.file.originalname
     );
 
-    return res.send({
-      localFilePath,
-      remoteFilePath,
-    });
+    // try {
+    //   await sftp.connect({
+    //     host: process.env.SFTP_HOST as string,
+    //     port: Number(process.env.SFTP_PORT) || 22,
+    //     username: process.env.SFTP_USER as string,
+    //     password: process.env.SFTP_PASSWORD,
+    //     // privateKey: fs.readFileSync(process.env.SFTP_PRIVATE_KEY_PATH!)
+    //   });
+
+    //   await sftp.put(localFilePath, remoteFilePath);
+
+    //   return res.json({
+    //     message: "File uploaded successfully",
+    //     file: req.file.originalname,
+    //   });
+    // } catch (e) {
+    //   console.error("SFTP upload error:", e);
+    //   return res.status(500).json({ error: "SFTP upload failed" });
+    // } finally {
+    //   fs.unlink(localFilePath, () => {});
+    //   sftp.end();
+    // }
+    res.send({ localFilePath, remoteFilePath });
   }
 );
 
