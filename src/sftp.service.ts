@@ -1,5 +1,6 @@
 import SftpClient from "ssh2-sftp-client";
 import dotenv from "dotenv";
+import fs from "fs";
 
 dotenv.config();
 
@@ -12,6 +13,7 @@ export class SftpService {
       port: Number(process.env.SFTP_PORT),
       username: process.env.SFTP_USERNAME,
       password: process.env.SFTP_PASSWORD,
+      privateKey: fs.readFileSync("/root/.ssh/sftp_proxy_key"),
     });
   }
 
